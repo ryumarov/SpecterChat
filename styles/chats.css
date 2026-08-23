@@ -1,0 +1,136 @@
+.chats-header {
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.25s, border-color 0.25s;
+}
+
+.chats-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  transition: color 0.25s;
+}
+
+/* ===== CHAT ROW ===== */
+.chat-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: var(--list-row-bg);
+  cursor: pointer;
+  transition: background 0.12s;
+  position: relative;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chat-row::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 74px;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+@media (hover: hover) {
+  .chat-row:hover {
+    background: var(--surface-hover);
+  }
+}
+
+.chat-row:active {
+  background: var(--surface-hover);
+}
+
+.chat-row.selected {
+  background: var(--accent-light);
+}
+
+@media (hover: hover) {
+  .chat-row.selected:hover {
+    background: var(--accent-light);
+  }
+}
+
+.chat-row-avatar {
+  flex-shrink: 0;
+}
+
+.chat-row-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.chat-row-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.25s;
+}
+
+.chat-row-time {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color 0.25s;
+}
+
+.chat-row-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.chat-row-preview {
+  font-size: 14px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  transition: color 0.25s;
+}
+
+.chat-row-badge {
+  background: var(--badge-blue);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.chats-list-area {
+  background: var(--list-row-bg);
+  flex: 1;
+  transition: background 0.25s;
+}

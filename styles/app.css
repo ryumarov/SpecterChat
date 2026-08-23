@@ -1,0 +1,595 @@
+/* ===== LAYOUT ===== */
+#app {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-height: 100dvh;
+  background: var(--bg);
+  color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+body{
+  overflow: hidden;
+}
+
+#screen-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Wraps every mounted screen (single .screen or a desktop split-view) so
+   Chat/Settings/Profile/Chats can swipe-transition between one another
+   without each screen needing to know about it. */
+.screen-anim-wrapper {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== SCREENS ===== */
+.screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  transition: background 0.25s ease;
+  animation: screenFadeIn 0.16s ease;
+}
+
+@keyframes screenFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ===== SCREEN SWIPE TRANSITIONS =====
+   While a transition is in flight, the outgoing and incoming screens are
+   stacked with position:absolute and animated purely with transform/opacity
+   (GPU-friendly, no layout thrashing). Both nodes are removed from this
+   mode the instant the transition ends, so normal flex layout resumes. */
+#screen-container.screen-transition-active {
+  position: relative;
+}
+#screen-container.screen-transition-active > .screen-anim-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.screen-exit,
+.screen-enter {
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease;
+  will-change: transform, opacity;
+}
+
+.screen-exit-forward   { transform: translateX(0); opacity: 1; }
+.screen-exit-backward  { transform: translateX(0); opacity: 1; }
+.screen-enter-forward  { transform: translateX(100%); opacity: 0.7; }
+.screen-enter-backward { transform: translateX(-100%); opacity: 0.7; }
+
+.screen-anim-run.screen-exit-forward   { transform: translateX(-28%); opacity: 0.5; }
+.screen-anim-run.screen-exit-backward  { transform: translateX(28%);  opacity: 0.5; }
+.screen-anim-run.screen-enter-forward,
+.screen-anim-run.screen-enter-backward { transform: translateX(0); opacity: 1; }
+
+.scroll-area {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* ===== HEADERS ===== */
+.screen-header {
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  display: flex;
+  align-items: center;
+  height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
+  padding: 0 16px;
+  padding-top: env(safe-area-inset-top, 0px);
+  position: relative;
+  flex-shrink: 0;
+  z-index: 10;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 96px); /* keep clear of the back button on narrow phones */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.25s;
+}
+
+.header-back {
+  display: flex;
+  align-items: center;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 8px;
+  margin-left: -8px;
+  border-radius: 8px;
+  transition: background 0.12s;
+  z-index: 1;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.header-back:active {
+  background: var(--accent-light);
+}
+
+/* ===== BOTTOM NAV — MOBILE ONLY ===== */
+.bottom-nav {
+  background: var(--nav-bg);
+  border-top: 1px solid var(--nav-border);
+  display: flex;
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  transition: background 0.25s ease, border-color 0.25s ease;
+  z-index: 100;
+}
+
+.bottom-nav.hidden {
+  display: none;
+}
+
+.nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 4px 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s;
+  min-height: var(--nav-height);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-tab.active {
+  color: var(--accent);
+}
+
+.nav-tab svg {
+  width: 27px;
+  height: 27px;
+  flex-shrink: 0;
+}
+
+.nav-tab-label {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.nav-badge {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  transform: translateX(6px);
+  background: var(--badge-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  border: 2px solid var(--nav-bg);
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* ===== SECTION LABELS ===== */
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  padding: 24px 20px 8px;
+  transition: color 0.25s;
+}
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--surface);
+  border-radius: 14px;
+  margin: 0 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.25s;
+}
+
+.card-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  position: relative;
+  min-height: 56px;
+  transition: background 0.12s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card-row:active {
+  background: var(--surface-hover);
+}
+
+.card-row + .card-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 54px;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+.card-row-icon {
+  color: var(--accent);
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-row-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-row-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: color 0.25s;
+}
+
+.card-row-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+  transition: color 0.25s;
+}
+
+.card-row-chevron {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  transition: color 0.25s;
+}
+
+/* ===== AVATAR ===== */
+.avatar {
+  border-radius: 50%;
+  background: linear-gradient(135deg, #60A5FA 0%, #2563EB 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: overlayFadeIn 0.18s ease;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 320px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  animation: modalSlideUp 0.22s ease;
+}
+
+@keyframes modalSlideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.modal-title {
+  padding: 20px 20px 10px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  transition: color 0.25s;
+}
+
+.modal-body {
+  padding: 4px 20px 20px;
+}
+
+.modal-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 16px;
+  color: var(--text-primary);
+  transition: border-color 0.15s, background 0.25s, color 0.25s;
+}
+
+.modal-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.modal-actions {
+  display: flex;
+  border-top: 1px solid var(--border);
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.12s;
+  color: var(--accent);
+  background: none;
+  border: none;
+}
+
+.modal-btn:active {
+  background: var(--surface-hover);
+}
+
+.modal-btn-cancel {
+  color: var(--text-secondary);
+  border-right: 1px solid var(--border);
+}
+
+.modal-btn-confirm {
+  font-weight: 700;
+}
+
+/* ===== SMALL PHONE TWEAKS (e.g. iPhone SE / narrow Android) ===== */
+@media (max-width: 359px) {
+  .screen-header, .chats-header, .chat-header { padding-left: 8px; padding-right: 8px; }
+  .header-title { font-size: 16px; max-width: calc(100% - 80px); }
+  .section-label { padding: 18px 14px 6px; }
+  .card { margin: 0 10px; }
+  .message-wrapper { max-width: 86%; }
+  .message-image { max-width: min(180px, 62vw); max-height: 180px; }
+  .message-audio { min-width: 170px; }
+  .chat-input-bar { padding: 8px; gap: 6px; }
+  .vk-key { min-width: 24px; }
+}
+
+/* ===== DESKTOP RESPONSIVE (≥ 768px) ===== */
+/* The 768px breakpoint matches exactly what router.js uses for isDesktop,
+   so these rules only ever fire when the router has already mounted the
+   desktop single-chat layout. Mobile is untouched below this line. */
+@media (min-width: 768px) {
+  body {
+    background: var(--bg);
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Full-viewport app — no max-width centering box on desktop */
+  #app {
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    /* Side-by-side: nav rail | screen content */
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  /* ── Desktop Left Navigation Rail ── */
+  #bottom-nav {
+    /* Override the mobile bottom-bar styles */
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;        /* items sit near bottom of rail */
+    gap: 0;
+    width: 64px;
+    min-width: 64px;
+    height: 100%;
+    border-top: none;
+    border-right: 1px solid var(--nav-border);
+    padding-bottom: 16px;
+    padding-top: 0;
+    order: -1;                        /* rail goes to the LEFT of screen-container */
+    flex-shrink: 0;
+    position: relative;
+    z-index: 100;
+  }
+
+  /* Each nav tab in the rail: square icon button */
+  #bottom-nav .nav-tab {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    min-height: unset;
+    border-radius: 12px;
+    padding: 0;
+    gap: 0;
+    margin: 4px 0;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  #bottom-nav .nav-tab:hover {
+    background: var(--surface-hover);
+  }
+
+  /* Hide text labels in the rail — icons only */
+  #bottom-nav .nav-tab-label {
+    display: none;
+  }
+
+  /* Active rail item: accent colored, subtle indicator bar on left */
+  #bottom-nav .nav-tab.active {
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  /* Badge in the rail */
+  #bottom-nav .nav-badge {
+    top: 4px;
+    left: 50%;
+    transform: translateX(4px);
+  }
+
+  /* Screen content fills remaining width */
+  #screen-container {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+  }
+}
+
+/* ===== DESKTOP SINGLE-CHAT VIEW =====
+   This app is only ever a 2-person conversation, so on laptop/desktop
+   widths there's no chat-list sidebar to choose from — the "Chats" tab
+   (and the "chat" route) opens that one conversation directly, full width.
+   Scoped to the same >=768px breakpoint router.js uses to decide
+   isDesktop, so nothing here ever touches the mobile layout below it. */
+.desktop-single-chat {
+  width: 100%;
+  height: 100%;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.desktop-single-chat .chat-header {
+  border-radius: 0;
+}
+/* No "back" destination on desktop — the chat header IS the Chats screen —
+   so the back arrow is hidden rather than left pointing nowhere useful. */
+.desktop-single-chat .chat-header-back {
+  display: none;
+}
+
+/* ===== DESKTOP EMOJI PANEL — Floating Picker =====
+   On desktop the emoji panel becomes a compact floating card that sits
+   ABOVE the composer, aligned to the right near the emoji button.
+   The mobile inline expand (display:none/block + max-height) is replaced
+   with a position:absolute popover. */
+@media (min-width: 768px) {
+  /* #composer-wrap (not .chat-input-bar) is the positioning context: the
+     panels are its siblings, not its children, so position:relative has
+     to live on their actual common ancestor or the popover's
+     "bottom: 100%" resolves against some unrelated ancestor higher up the
+     tree (previously #screen-container) and renders off-screen. */
+  .desktop-single-chat #composer-wrap {
+    position: relative;
+  }
+
+  /* Emoji container: floating popover above composer.
+     max-height/opacity/overflow here intentionally override the mobile
+     .input-panel base rule (which sizes for the inline mobile layout,
+     not this floating popover) — visibility is driven purely by opacity
+     + pointer-events on desktop, not by animating max-height. */
+  .desktop-single-chat #emoji-container {
+    position: absolute !important;
+    bottom: calc(100% + 8px);
+    right: 8px;
+    width: 300px;
+    max-height: 240px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    z-index: 200;
+    /* Animation: slide up + fade */
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.22, 0.8, 0.32, 1);
+  }
+
+  .desktop-single-chat #emoji-container.panel-open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* Virtual keyboard: completely hidden on desktop */
+  .desktop-single-chat #keyboard-container {
+    display: none !important;
+  }
+
+  /* Composer centering with comfortable max-width */
+  .desktop-single-chat .chat-input-wrap {
+    max-width: none;
+    margin: 0;
+  }
+}
+
+/* Reduced motion: skip panel animations */
+@media (prefers-reduced-motion: reduce) {
+  .desktop-single-chat #emoji-container {
+    transition: opacity 0.1s ease;
+    transform: none !important;
+  }
+}

@@ -1,0 +1,103 @@
+:root {
+  /* Accent */
+  --accent: #2563EB;
+  --accent-hover: #1D4ED8;
+  --accent-light: #EFF6FF;
+
+  /* Backgrounds */
+  --bg: #F2F2F7;
+  --surface: #FFFFFF;
+  --surface-secondary: #F5F5F7;
+  --surface-hover: #EBEBED;
+
+  /* Split-view panel backgrounds. Default to the existing tokens so light
+     mode renders pixel-identical; dark mode gives each panel its own soft,
+     distinct tone (see below). */
+  --sidebar-bg: var(--bg);
+  --chat-bg: var(--bg);
+  --list-row-bg: var(--surface);
+
+  /* Text */
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+
+  /* Borders */
+  --border: #E5E7EB;
+  --border-subtle: #F3F4F6;
+
+  /* Navigation */
+  --nav-bg: #FFFFFF;
+  --nav-border: rgba(0, 0, 0, 0.08);
+  --nav-height: 64px;
+
+  /* Header */
+  --header-bg: #FFFFFF;
+  --header-border: rgba(0, 0, 0, 0.08);
+  --header-height: 56px;
+
+  /* Chat bubbles */
+  --bubble-out: #2563EB;
+  --bubble-out-text: #FFFFFF;
+  --bubble-in: #FFFFFF;
+  --bubble-in-text: #111827;
+  --bubble-in-shadow: 0 1px 2px rgba(0,0,0,0.10);
+
+  /* Badges */
+  --badge-red: #EF4444;
+  --badge-blue: #2563EB;
+
+  /* Input */
+  --input-bg: #F3F4F6;
+
+  /* Message font size (controlled via JS) */
+  --msg-font-size: 15px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+}
+
+/* ===== DARK THEME =====
+   A soft, modern messenger palette — deliberately avoids pure black and
+   harsh pure-white text. Each panel (app shell / sidebar / chat pane /
+   elevated surfaces) gets its own close-but-distinct tone so the desktop
+   split-view reads as layered rather than flat. */
+[data-theme="dark"] {
+  --accent: #5B8DEF;
+  --accent-hover: #4C7EDB;
+  --accent-light: rgba(91, 141, 239, 0.16);
+
+  --bg: #151618;
+  --surface: #202328;
+  --surface-secondary: #23262B;
+  --surface-hover: #2A2E34;
+
+  --sidebar-bg: #1B1D20;
+  --chat-bg: #17191C;
+  --list-row-bg: #1B1D20;
+
+  --text-primary: #F1F3F5;
+  --text-secondary: #9CA3AF;
+  --text-tertiary: #727983;
+
+  --border: #2A2D32;
+  --border-subtle: #23262B;
+
+  --nav-bg: #1B1D20;
+  --nav-border: rgba(255, 255, 255, 0.06);
+
+  --header-bg: #1B1D20;
+  --header-border: rgba(255, 255, 255, 0.06);
+
+  --bubble-out: #5B8DEF;
+  --bubble-out-text: #FFFFFF;
+  --bubble-in: #23262B;
+  --bubble-in-text: #F1F3F5;
+  --bubble-in-shadow: none;
+
+  --input-bg: #23262B;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.35);
+}
